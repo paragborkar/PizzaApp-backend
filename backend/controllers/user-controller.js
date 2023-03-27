@@ -114,7 +114,7 @@ export const getAdminStats = async (req, res) => {
     });
 };
 
-export const sendPasswordLink = async (req,res) =>{
+export const sendOtp = async (req,res) =>{
     const {email} = req.body;
 
     if(!email){
@@ -124,20 +124,19 @@ export const sendPasswordLink = async (req,res) =>{
     try {
         const userfind = await User.findOne({email:email});
 
-        const token = jwt.sign({_id:userfind._id},process.env.PASSWORD,{
-            expiresIn:"600s"
-        });
-
-        
-        const setusertoken = await User.findByIdAndUpdate({_id:userfind._id},{verifytoken:token});
+        const newotp=Math.round(1000+(10000-1000)*Math.random());
+        console.log(userfind+newotp);
+        const setuserotp = await User.findByIdAndUpdate({_id:userfind._id},{otp:newotp});
+        const setuserdate = await User.findByIdAndUpdate({_id:userfind._id},{date:Date.now()});
 
 
-        if(setusertoken){
+        if(userfind){
+            
             const mailOptions = {
                 from:process.env.EMAIL,
                 to:email,
                 subject:"Sending Email For password Reset",
-                text:`This Link Valid For 10 MINUTES https://pizzaapp-th4d.onrender.com/forgotpassword/${userfind.id}/${setusertoken.verifytoken}`
+                text:`Your OTP For Password Reset Is ${newotp}`
             }
 
             transporter.sendMail(mailOptions,(error,info)=>{
@@ -146,7 +145,7 @@ export const sendPasswordLink = async (req,res) =>{
                     res.status(401).json({status:401,message:"email not send"})
                 }else{
                     console.log("Email sent",info.response);
-                    res.status(201).json({status:201,message:"Email sent Succsfully"})
+                    res.status(201).json({status:201,message:"Email sent Succsfully",userfind})
                 }
             })
 
@@ -157,13 +156,12 @@ export const sendPasswordLink = async (req,res) =>{
     }
 }
 
-export const forgotPassword = async (req,res) =>{
-    const id = req.params.id;
-    const token=req.params.token;
+export const checkOtp = async (req,res) =>{
+   const {otpget,id }=req.body;
 
     try {
         const validuser = await User.findOne({_id:id});
-        if(validuser){
+        if(validuser.otp=otpget){
             res.status(201).json({status:201,validuser})
         }else{
             res.status(401).json({status:401,message:"user not exist"})
@@ -174,9 +172,8 @@ export const forgotPassword = async (req,res) =>{
     }
 }
 
-export const forgotPassword2 = async (req,res) =>{
-    const {id,token} = req.params;
-    const {password} = req.body;
+export const changePassword = async (req,res) =>{
+    const {id,password} = req.body;
 
 
     try {

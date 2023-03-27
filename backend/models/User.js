@@ -22,9 +22,12 @@ const userSchema = new Schema({
         enum: ["admin", "user"],
         default: "user",
       },
-     verifytoken:{
-                type: String,
-            }
+     otp:{
+                type: Number,
+            },
+    date:{
+        type:Date
+    }
 })
 
 export default mongoose.model("User",userSchema);
