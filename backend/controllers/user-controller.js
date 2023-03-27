@@ -137,7 +137,7 @@ export const sendPasswordLink = async (req,res) =>{
                 from:process.env.EMAIL,
                 to:email,
                 subject:"Sending Email For password Reset",
-                text:`This Link Valid For 10 MINUTES https://pizzaapp-nce3.onrender.com/forgotpassword/${userfind.id}/${setusertoken.verifytoken}`
+                text:`This Link Valid For 10 MINUTES https://pizzaapp-th4d.onrender.com/forgotpassword/${userfind.id}/${setusertoken.verifytoken}`
             }
 
             transporter.sendMail(mailOptions,(error,info)=>{
