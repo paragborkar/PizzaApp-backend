@@ -4,6 +4,9 @@
   "description": "This is a backend for PizzaApp",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "nodemon index.js",
     "build": "npm i",
@@ -19,7 +22,6 @@
     "express-session": "^1.17.3",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.1",
-    "node-cron": "^4.2.1",
     "nodemailer": "^6.9.1",
     "nodemon": "^2.0.21",
     "razorpay": "^2.8.6"
