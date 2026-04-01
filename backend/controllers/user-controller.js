@@ -118,41 +118,47 @@ export const sendOtp = async (req,res) =>{
     const {email} = req.body;
 
     if(!email){
-        res.status(401).json({status:401,message:"Enter Your Email"})
+        return res.status(400).json({status:400, message:"Enter Your Email"});
     }
 
     try {
-        const userfind = await User.findOne({email:email});
+        const newotp = Math.round(1000 + (10000 - 1000) * Math.random());
+        
+        // 1. Combine two separate findByIdAndUpdate calls into a single findOneAndUpdate call
+        // This cuts down database roundtrips from 3 down to 1!
+        const userfind = await User.findOneAndUpdate(
+            { email: email },
+            { otp: newotp, date: Date.now() },
+            { new: true } // returns the updated document
+        );
 
-        const newotp=Math.round(1000+(10000-1000)*Math.random());
-        console.log(userfind+newotp);
-        const setuserotp = await User.findByIdAndUpdate({_id:userfind._id},{otp:newotp});
-        const setuserdate = await User.findByIdAndUpdate({_id:userfind._id},{date:Date.now()});
-
-
-        if(userfind){
-            
-            const mailOptions = {
-                from:process.env.EMAIL,
-                to:email,
-                subject:"Sending Email For password Reset",
-                text:`Your OTP For Password Reset Is ${newotp}`
-            }
-
-            transporter.sendMail(mailOptions,(error,info)=>{
-                if(error){
-                    console.log("error",error);
-                    res.status(401).json({status:401,message:"email not send"})
-                }else{
-                    console.log("Email sent",info.response);
-                    res.status(201).json({status:201,message:"Email sent Succsfully",userfind})
-                }
-            })
-
+        if(!userfind){
+            return res.status(404).json({status:404, message:"User not found"});
         }
 
+        // 2. Respond to the frontend IMMEDIATELY so the user doesn't wait 14 seconds
+        res.status(201).json({status:201, message:"Email sending in background", userfind});
+
+        // 3. Send the email asynchronously in the background. Node will continue executing this 
+        // without keeping the client's HTTP request hanging.
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: "Sending Email For Password Reset",
+            text: `Your OTP For Password Reset Is ${newotp}`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if(error){
+                console.error("Background Email Error:", error);
+            } else {
+                console.log("Email sent successfully in background:", info.response);
+            }
+        });
+
     } catch (error) {
-        res.status(401).json({status:401,message:"invalid user"})
+        console.error("sendOtp error:", error);
+        res.status(500).json({status:500, message:"Internal Server Error"});
     }
 }
 
