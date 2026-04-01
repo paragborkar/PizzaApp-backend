@@ -29,5 +29,5 @@ app.listen(process.env.PORT, () => {
   //   });
   // }, FOURTEEN_MINUTES);
 
-  // console.log(`[Keep-Alive] Started — pinging ${PING_URL} every 14 minutes`);
+  //
 });
